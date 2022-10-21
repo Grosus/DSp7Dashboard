@@ -24,14 +24,14 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 def read(): 
     path= "./" 
     data=pd.read_csv(os.path.join(path,'df_prepro.csv'))
-    data = data[data['TARGET'].notnull()].dropna(1).drop('Unnamed: 0',1)
+    df = data[data['TARGET'].notnull()].dropna(1).drop('Unnamed: 0',1)
     results=pd.read_csv(os.path.join(path,'prediction.csv'))
     loaded_model = joblib.load('model_lgbm.pkl')
     results['TARGET']=results.TARGET.round(2)
     with open("shap_value", "rb") as fp:   # Unpickling
         shap_values = pickle.load(fp)   
     expected_values =np.load('explainer.npy')
-    return data , results , loaded_model,shap_values,expected_values  
+    return df , results , loaded_model,shap_values,expected_values  
 
 def plot(df,options,number ):
     value_client=df.query('SK_ID_CURR == @number')[options]
