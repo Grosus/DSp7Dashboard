@@ -24,7 +24,6 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 def read(): 
     path= "./" 
     data=pd.read_csv(os.path.join(path,'df_prepro.csv'))
-    st.write(data)
     df = data[data['TARGET'].notnull()].dropna(1).drop('Unnamed: 0',1)
     results=pd.read_csv(os.path.join(path,'prediction.csv'))
     loaded_model = joblib.load('model_lgbm.pkl')
