@@ -20,7 +20,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 
-@st.cache
+
 def read(): 
     path= "./" 
     data=pd.read_csv(os.path.join(path,'df_prepro.csv'))
