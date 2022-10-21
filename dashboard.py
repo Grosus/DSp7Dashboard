@@ -20,7 +20,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 
-
+@st.cache
 def read(): 
     path= "./" 
     data=pd.read_csv(os.path.join(path,'df_prepro.csv'))
@@ -28,7 +28,7 @@ def read():
     df = data[data['TARGET'].notnull()].dropna(1).drop('Unnamed: 0',1)
     results=pd.read_csv(os.path.join(path,'prediction.csv'))
     loaded_model = joblib.load('model_lgbm.pkl')
-    results['TARGET']=results.TARGET.round(2)
+    results['TARGET']=results['TARGET'].round(2)
     with open("shap_value", "rb") as fp:   # Unpickling
         shap_values = pickle.load(fp)   
     expected_values =np.load('explainer.npy')
