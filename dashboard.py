@@ -36,8 +36,9 @@ def read():
 # Plot de la partie client pour un client et une variable
 def plot(df,options,number ):
     value_client=df.query('SK_ID_CURR == @number')[options]
+    ymax=df.groupby(options).count().max()[0]
     if len(df[options].unique())<20:
-        st.write('LE client est dans la catégorie :' ,value_client )
+        st.write('Valeurs de la variable pour le client :' ,value_client )
         fig, ax = plt.subplots()
         df_0=df[df['TARGET']==0]
         df_1=df[df['TARGET']==1]
@@ -48,9 +49,10 @@ def plot(df,options,number ):
         cat_plot.plot(kind='bar',ax=ax)
         value_client=df.query('SK_ID_CURR == @number')[options]
         ax.plot(value_client,1 , marker = '|', linestyle = '' , color='green')
-    else:     
+        plt.vlines(value_client,0,ymax, color='r', label='client')
+    else:
+        st.write('Valeurs de la variable pour le client :' ,value_client)
         fig=sns.displot(x=options,data=df,hue='TARGET')
-        ymax=df.groupby(options).count().max()[0]
         plt.vlines(value_client,0,ymax, color='r', label='client')
     
     return fig
@@ -66,12 +68,15 @@ def client_plot(df,number):
     if option=='Aucun' :
         st.write('Choisissez une variable')
         st.stop()
-    st.write('You selected:', option)
     fig = plot(df , option,number)
     st.pyplot(fig)
     
 #Fonction général de la partie client
 def explo_plot(df,clf,shap_values,expected_values):
+    st.title('Information sur les clients')
+    st.write("Veuillez inserer un numero de client valide pour continuer l'éxploration")
+    st.write("Comme ce Dashboard ne visualise qu'un nombre restreint de donnée ,des exemple d'ID clients valide peuvent etre trouvé dans la colonne SK_ID_CURR du fichier df_prepro.csv")
+    
     tresh=50
     number = st.number_input('Inserez le numero de client',min_value=0, max_value=999999)
     if number==0:
@@ -88,7 +93,9 @@ def explo_plot(df,clf,shap_values,expected_values):
     col1, col2 = st.columns(2)
     
     col1.metric("TARGET", df.query("SK_ID_CURR == @number")['TARGET'])
-    col2.metric("Prediction", round(y_pred[index,1],2))
+    col2.metric("Prediction d'appertenance a la classe 1", round(y_pred[index,1],2))
+    
+    
     if st.radio(
     "",
     ('Informations général', 'Importance des features dans la prediction'),horizontal=True )=='Informations général':
@@ -163,6 +170,7 @@ def pred_plot_mdl(y_tresh, y,df):
     df_cm = pd.DataFrame(conf_mat, index = [label for label in set(y)],
                       columns = [i for i in "01"])
     ax=sns.heatmap(df_cm, annot=True, cmap="Blues")
+    ax.set(xlabel='Y_pred', ylabel='Ytrue',title='Matrice de confusion')
     col1.pyplot(fig)
     number = col2.number_input("Entrez l'id client",min_value=0, max_value=999999)
     if number==0:
@@ -183,9 +191,11 @@ def model(df,clf,shap_values,expected_values):
     
     (X,y,y_pred)=result_pred(df,clf)
     col1, col2 = st.columns(2)
-    
+    col1.write('Roc curve')
     fig_ROC = RocCurveDisplay.from_estimator(clf, X, y)
+    
     col1.pyplot(fig_ROC.figure_)
+    col2.write('Precision Recall curve')
     fig_ROC = PrecisionRecallDisplay.from_estimator(clf, X, y)
     col2.pyplot(fig_ROC.figure_)
     tresh_min=round((y_pred[:,1].min()*100)+1)
@@ -215,6 +225,7 @@ def model(df,clf,shap_values,expected_values):
     
 #Fonction pour la prédiction d'un nouveau clients    
 def predict_new(df):
+    st.title("Prédiction d'un nouveau client")
     data_name=['application_train.csv','application_test.csv', 'bureau.csv' ,'bureau_balance.csv' , 'credit_card_balance.csv', 'installments_payments.csv', 'POS_CASH_balance.csv', 'previous_application.csv']
     st.write("Pour obtenir la prédiction d'un nouveau client vous devez ajouter 7 Dataframes nommés : ")
     
